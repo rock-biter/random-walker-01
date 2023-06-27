@@ -1,39 +1,44 @@
 import './style.css'
 import * as THREE from 'three'
-import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls'
-import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls'
-import { FlyControls } from 'three/examples/jsm/controls/FlyControls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { MapControls } from 'three/examples/jsm/controls/MapControls'
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
+import fontSrc from 'three/examples/fonts/helvetiker_bold.typeface.json?url'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
+import { gsap } from 'gsap'
+import { Vector3 } from 'three/src/math/Vector3'
 
 /**
  * Scene
  */
 const scene = new THREE.Scene()
 
+let font
+
 /**
  * Manhattan
  */
-const material = new THREE.MeshNormalMaterial()
+const material = new THREE.MeshNormalMaterial({
+	wireframe: true,
+})
 
-const size = 6
+const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
 
-for (let i = 0; i < size; i++) {
-	for (let j = 0; j < size; j++) {
-		const height = Math.random() * 4 + 1
+const mesh = new THREE.Mesh(geometry, material)
+scene.add(mesh)
 
-		const geometry = new THREE.BoxGeometry(1, height, 1)
+mesh.add(new THREE.AxesHelper(2))
+mesh.rotation.x = 2.3
+mesh.rotation.y = 0.78
 
-		const mesh = new THREE.Mesh(geometry, material)
-		mesh.position.set(-size + i * 2, height / 2, -size + j * 2)
-		scene.add(mesh)
-	}
-}
+console.log(mesh)
 
-const mouse = new THREE.Vector2(0, 0)
-let factor = 0
+const axesHelper = new THREE.AxesHelper(4)
+scene.add(axesHelper)
+
+const gridHelper = new THREE.GridHelper(4, 4)
+gridHelper.position.set(2, -0.01, 2)
+
+scene.add(gridHelper)
 
 /**
  * render sizes
@@ -45,11 +50,11 @@ const sizes = {
 /**
  * Camera
  */
-const fov = 90
+const fov = 60
 const camera = new THREE.PerspectiveCamera(fov, sizes.width / sizes.height, 0.1)
 
-camera.position.set(10, 0.5, 10)
-camera.lookAt(new THREE.Vector3(0, 2.5, 0))
+camera.position.set(5, 4, 8)
+// camera.lookAt(new THREE.Vector3(0, 2.5, 0))
 
 /**
  * renderer
@@ -65,117 +70,17 @@ renderer.setPixelRatio(pixelRatio)
 document.body.appendChild(renderer.domElement)
 
 /**
- * muovo indietro la camera
- */
-// camera.position.z = 4
-
-/**
- * ArcballControls
- */
-
-// const controls = new ArcballControls(camera, renderer.domElement, scene)
-
-/**
- * FlyControls
- */
-// const controls = new FlyControls(camera, renderer.domElement)
-// controls.movementSpeed = 2
-// controls.rollSpeed = 0.5
-// controls.autoForward = true
-
-/**
- * FirstPersonControls
- */
-// const controls = new FirstPersonControls(camera, renderer.domElement)
-// controls.lookSpeed = 0.03
-
-// // impedisce inclinazione verticale
-// controls.lookVertical = false
-
-// limita gli angoli di inclinazione verticale
-// controls.verticalMin = Math.PI * 0.25
-// controls.verticalMax = Math.PI * 0.75
-// controls.constrainVertical = true
-// controls.heightSpeed = true
-// controls.heightMax = 100
-// controls.heightCoef = 3
-
-/**
  * OrbitControls
  */
-// const controls = new OrbitControls(camera, renderer.domElement)
-
-/**
- * MapControls
- */
-// const controls = new MapControls(camera, renderer.domElement)
-// attiva la rotazione automatica
-// controls.autoRotate = true
-// imposta la velocità di rotazione
-// controls.autoRotateSpeed = 3.0
-// controls.enableRotate = false
-// controls.enableDamping = true
-// controls.dampingFactor = 0.07
-
-// controls.enablePan = false
-// controls.panSpeed = 2
-// controls.screenSpacePanning = false
-// controls.listenToKeyEvents(window)
-// controls.keys = {
-// 	LEFT: 'KeyA',
-// 	UP: 'KeyW',
-// 	RIGHT: 'KeyD',
-// 	BOTTOM: 'KeyS',
-// }
-
-// controls.minDistance = 2
-// controls.maxDistance = 20
-
-// controls.minPolarAngle = Math.PI * 0.25
-// controls.maxPolarAngle = Math.PI * 0.75
-
-// controls.minAzimuthAngle = -Math.PI * 0.5
-// controls.maxAzimuthAngle = Math.PI * 0.5
-
-// /**
-//  * PointerLockControls
-//  */
-// const controls = new PointerLockControls(camera, document.body)
-
-/**
- * PointerLockControls
- */
-const controls = new TrackballControls(camera, renderer.domElement)
-controls.dynamicDampingFactor = 0.05
-
-/**
- * velocità di rotazione radianti al secondo
- */
-const vel = new THREE.Vector3(0, 0, 0)
-
-/**
- * Three js Clock
- */
-const clock = new THREE.Clock()
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.target.set(2, 1, 2)
 
 /**
  * frame loop
  */
 function tic() {
-	/**
-	 * tempo trascorso dal frame precedente
-	 */
-	const deltaTime = clock.getDelta()
-	/**
-	 * tempo totale trascorso dall'inizio
-	 */
-	// const time = clock.getElapsedTime()
 	controls.update()
-
-	if (controls.isLocked) {
-		controls.moveForward(vel.z * deltaTime)
-		controls.moveRight(vel.x * deltaTime)
-	}
 
 	renderer.render(scene, camera)
 
@@ -187,7 +92,6 @@ requestAnimationFrame(tic)
 window.addEventListener('resize', onResize)
 
 function onResize() {
-	console.log('resize')
 	sizes.width = window.innerWidth
 	sizes.height = window.innerHeight
 
@@ -198,61 +102,138 @@ function onResize() {
 
 	const pixelRatio = Math.min(window.devicePixelRatio, 2)
 	renderer.setPixelRatio(pixelRatio)
-
-	controls.handleResize()
 }
 
-controls.addEventListener('lock', function () {
-	// menu.style.display = 'none'
+function createVector(
+	name,
+	v = new THREE.Vector3(),
+	origin = new THREE.Vector3()
+) {
+	const color = new THREE.Color(Math.random(), Math.random(), Math.random())
+
+	const h = new THREE.ArrowHelper(
+		v.clone().normalize(),
+		origin.clone(),
+		v.length(),
+		color.getHex(),
+		0.3,
+		0.2
+	)
+
+	const textPos = v.clone().multiplyScalar(0.65).add(origin)
+
+	createText(name, textPos, color)
+	scene.add(h)
+
+	return h
+}
+
+const loader = new FontLoader()
+loader.load(fontSrc, function (res) {
+	font = res
+
+	init()
 })
 
-controls.addEventListener('unlock', function () {
-	// menu.style.display = 'block'
-})
+function createText(text, position, color) {
+	const geometry = new TextGeometry(text, {
+		font,
+		size: 0.3,
+		height: 0.05,
+	})
 
-// window.addEventListener('click', function () {
-// 	// cliccando sulla window attiviamo il controls se non è attivo
-// 	if (!controls.isLocked) {
-// 		controls.lock()
-// 	}
-// })
+	geometry.computeBoundingBox()
 
-window.addEventListener('keydown', function (e) {
-	// disattivo il controls se l'utente preme il tasto Esc
-	switch (e.code) {
-		case 'KeyA':
-		case 'ArrowLeft':
-			vel.x = -1
-			break
-		case 'KeyD':
-		case 'ArrowRight':
-			vel.x = 1
-			break
-		case 'KeyW':
-		case 'ArrowUp':
-			vel.z = 1
-			break
-		case 'KeyS':
-		case 'ArrowDown':
-			vel.z = -1
-			break
-	}
-})
+	let mesh = new THREE.Mesh(
+		geometry,
+		new THREE.MeshBasicMaterial({
+			color: color.getHex(),
+		})
+	)
 
-window.addEventListener('keyup', function (e) {
-	// disattivo il controls se l'utente preme il tasto Esc
-	switch (e.code) {
-		case 'KeyA':
-		case 'ArrowLeft':
-		case 'KeyD':
-		case 'ArrowRight':
-			vel.x = 0
-			break
-		case 'KeyW':
-		case 'ArrowUp':
-		case 'KeyS':
-		case 'ArrowDown':
-			vel.z = 0
-			break
-	}
-})
+	console.log(geometry.boundingBox)
+
+	mesh.position.copy(position)
+
+	mesh.position.y += 0.2
+	mesh.position.x -=
+		(geometry.boundingBox.max.x - geometry.boundingBox.min.x) / 2
+
+	scene.add(mesh)
+}
+
+function init() {
+	const t = 0.05
+	const P = new THREE.Vector3(0, 0.1, 0)
+	const Q = new THREE.Vector3(3, 0, 0)
+	const T = new THREE.Vector3(-2, 2, 1)
+
+	// Q.transformDirection(mesh.matrixWorld)
+	P.normalize()
+	Q.normalize()
+
+	// // const v1 = createVector(2, 2, 0.5)
+	// // const v2 = createVector(1, 0.5, 3)
+	// // scene.add(v1.helper, v2.helper)
+	createVector('P', P)
+	createVector('Q', Q)
+	// createVector('T', T)
+
+	const dot = P.dot(Q)
+	console.log(dot)
+
+	Q.normalize()
+
+	const projqP = Q.multiplyScalar(P.dot(Q))
+	createVector('projP', projqP)
+
+	const perpqP = P.clone().sub(projqP)
+	createVector('perpqP', perpqP)
+
+	// const projPOnT = P.clone().projectOnVector(T)
+
+	// createVector('projP', projPOnT)
+
+	// mesh.position.add(P)
+
+	// // v3 = v1 + v2
+	// const v3 = v1.clone()
+	// v3.add(v2)
+
+	// createVector('v1 + v2', v3)
+
+	// createVector('v2', v2, v1)
+
+	// // v4 = v1 - v2
+	// const v4 = v1.clone()
+	// v4.sub(v2)
+	// createVector('v1 - v2', v4, v2)
+	// createVector('v1 - v2', v4)
+
+	// // v4 = v1 + (-v2)
+	// const v5 = v2.clone().negate()
+	// createVector('-v2', v5, v1)
+
+	// const v6 = v2.clone().sub(v1)
+	// createVector('v2 - v1', v6)
+
+	// const prevPos = new THREE.Vector3()
+	// let i = 0
+
+	// setInterval(() => {
+	// 	const pos = new THREE.Vector3().randomDirection()
+	// 	pos.multiplyScalar(Math.random() * 2 + 1)
+
+	// 	createVector(`v${i + 1}`, pos, prevPos)
+
+	// 	prevPos.add(pos)
+
+	// 	createVector('', prevPos)
+
+	// 	gsap.to(mesh.position, { duration: t * 0.8, ...prevPos })
+
+	// 	i++
+	// }, t * 1000)
+
+	// createVector('P', prevPos)
+}
