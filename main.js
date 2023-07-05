@@ -4,7 +4,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 import fontSrc from 'three/examples/fonts/helvetiker_bold.typeface.json?url'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
-import { gsap } from 'gsap'
 import { Vector3 } from 'three/src/math/Vector3'
 
 /**
@@ -15,29 +14,33 @@ const scene = new THREE.Scene()
 let font
 
 /**
- * Manhattan
+ * Cube
  */
-const material = new THREE.MeshNormalMaterial({
-	wireframe: true,
-})
+// const material = new THREE.MeshNormalMaterial({
+// 	wireframe: true,
+// })
 
-const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
+// const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
 
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+// const mesh = new THREE.Mesh(geometry, material)
+// // scene.add(mesh)
 
-mesh.add(new THREE.AxesHelper(2))
-mesh.rotation.x = 2.3
-mesh.rotation.y = 0.78
+// mesh.add(new THREE.AxesHelper(2))
+// mesh.rotation.x = 2.3
+// mesh.rotation.y = 0.78
 
-console.log(mesh)
-
-const axesHelper = new THREE.AxesHelper(4)
+/**
+ * Axes Helper
+ */
+const axesHelper = new THREE.AxesHelper(6)
 scene.add(axesHelper)
 
-const gridHelper = new THREE.GridHelper(4, 4)
-gridHelper.position.set(2, -0.01, 2)
-
+/**
+ * Grid helper
+ */
+const gridHelper = new THREE.GridHelper(6, 6)
+gridHelper.rotation.x = Math.PI * 0.5
+gridHelper.position.set(3, 3, -0.01)
 scene.add(gridHelper)
 
 /**
@@ -53,8 +56,7 @@ const sizes = {
 const fov = 60
 const camera = new THREE.PerspectiveCamera(fov, sizes.width / sizes.height, 0.1)
 
-camera.position.set(5, 4, 8)
-// camera.lookAt(new THREE.Vector3(0, 2.5, 0))
+camera.position.set(3, 3, 6)
 
 /**
  * renderer
@@ -74,7 +76,7 @@ document.body.appendChild(renderer.domElement)
  */
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
-controls.target.set(2, 1, 2)
+controls.target.set(3, 3, 3)
 
 /**
  * frame loop
@@ -104,6 +106,13 @@ function onResize() {
 	renderer.setPixelRatio(pixelRatio)
 }
 
+/**
+ * Create the ArrowHelper for the vector
+ * @param {String} name
+ * @param {Vector3} v
+ * @param {Vector3} origin
+ * @returns
+ */
 function createVector(
 	name,
 	v = new THREE.Vector3(),
@@ -128,6 +137,9 @@ function createVector(
 	return h
 }
 
+/**
+ * Load font
+ */
 const loader = new FontLoader()
 loader.load(fontSrc, function (res) {
 	font = res
@@ -135,6 +147,12 @@ loader.load(fontSrc, function (res) {
 	init()
 })
 
+/**
+ * create Label for the ArrowHelper
+ * @param {String} text
+ * @param {Vector3} position
+ * @param {THREE.Color} color
+ */
 function createText(text, position, color) {
 	const geometry = new TextGeometry(text, {
 		font,
@@ -163,77 +181,28 @@ function createText(text, position, color) {
 }
 
 function init() {
-	const t = 0.05
-	const P = new THREE.Vector3(0, 0.1, 0)
-	const Q = new THREE.Vector3(3, 0, 0)
-	const T = new THREE.Vector3(-2, 2, 1)
+	const positionA = new THREE.Vector3(3, 1, 0)
+	const s = new THREE.Vector3(1, 2, 0)
 
-	// Q.transformDirection(mesh.matrixWorld)
-	P.normalize()
-	Q.normalize()
+	s.multiplyScalar(2)
 
-	// // const v1 = createVector(2, 2, 0.5)
-	// // const v2 = createVector(1, 0.5, 3)
-	// // scene.add(v1.helper, v2.helper)
-	createVector('P', P)
-	createVector('Q', Q)
-	// createVector('T', T)
+	console.log(s.length())
 
-	const dot = P.dot(Q)
-	console.log(dot)
+	createVector('A', positionA)
+	createVector('s', s)
 
-	Q.normalize()
+	const positionB = positionA.clone().add(s)
 
-	const projqP = Q.multiplyScalar(P.dot(Q))
-	createVector('projP', projqP)
+	createVector('B', positionB)
 
-	const perpqP = P.clone().sub(projqP)
-	createVector('perpqP', perpqP)
+	// const normalizedB = positionB.multiplyScalar(1 / positionB.length())
+	const normalizedB = positionB.normalize()
+	createVector('nB', normalizedB)
 
-	// const projPOnT = P.clone().projectOnVector(T)
+	// s.negate()
 
-	// createVector('projP', projPOnT)
+	// createVector('-s', s)
 
-	// mesh.position.add(P)
-
-	// // v3 = v1 + v2
-	// const v3 = v1.clone()
-	// v3.add(v2)
-
-	// createVector('v1 + v2', v3)
-
-	// createVector('v2', v2, v1)
-
-	// // v4 = v1 - v2
-	// const v4 = v1.clone()
-	// v4.sub(v2)
-	// createVector('v1 - v2', v4, v2)
-	// createVector('v1 - v2', v4)
-
-	// // v4 = v1 + (-v2)
-	// const v5 = v2.clone().negate()
-	// createVector('-v2', v5, v1)
-
-	// const v6 = v2.clone().sub(v1)
-	// createVector('v2 - v1', v6)
-
-	// const prevPos = new THREE.Vector3()
-	// let i = 0
-
-	// setInterval(() => {
-	// 	const pos = new THREE.Vector3().randomDirection()
-	// 	pos.multiplyScalar(Math.random() * 2 + 1)
-
-	// 	createVector(`v${i + 1}`, pos, prevPos)
-
-	// 	prevPos.add(pos)
-
-	// 	createVector('', prevPos)
-
-	// 	gsap.to(mesh.position, { duration: t * 0.8, ...prevPos })
-
-	// 	i++
-	// }, t * 1000)
-
-	// createVector('P', prevPos)
+	// const positionC = positionA.clone().add(s)
+	// createVector('C', positionC)
 }
