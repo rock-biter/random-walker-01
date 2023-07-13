@@ -5,7 +5,6 @@ import fontSrc from 'three/examples/fonts/helvetiker_bold.typeface.json?url'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
-import Walker from './Walker'
 
 /**
  * Scene
@@ -13,9 +12,6 @@ import Walker from './Walker'
 const scene = new THREE.Scene()
 
 let font
-
-const walker = new Walker(scene)
-scene.add(walker.mesh)
 
 /**
  * Cube
@@ -81,12 +77,6 @@ document.body.appendChild(renderer.domElement)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
-const clock = new THREE.Clock()
-const f = 1
-let steps = 0
-
-walker.step()
-
 /**
  * frame loop
  */
@@ -94,16 +84,6 @@ function tic() {
 	controls.update()
 
 	renderer.render(scene, camera)
-
-	// const t = clock.getElapsedTime()
-	// if (steps < t / f) {
-	// 	steps++
-
-	// 	const pos = walker.position.clone()
-	// 	const pos2 = walker.step()
-
-	// 	createVector('', pos2.sub(pos), pos)
-	// }
 
 	requestAnimationFrame(tic)
 }
