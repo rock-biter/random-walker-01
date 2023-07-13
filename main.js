@@ -1,10 +1,11 @@
 import './style.css'
 import * as THREE from 'three'
+import { ArrowHelper, Color, Mesh, MeshBasicMaterial, Vector3 } from 'three'
+import fontSrc from 'three/examples/fonts/helvetiker_bold.typeface.json?url'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
-import fontSrc from 'three/examples/fonts/helvetiker_bold.typeface.json?url'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
-import { Vector3 } from 'three/src/math/Vector3'
+import Walker from './Walker'
 
 /**
  * Scene
@@ -12,6 +13,9 @@ import { Vector3 } from 'three/src/math/Vector3'
 const scene = new THREE.Scene()
 
 let font
+
+const walker = new Walker(scene)
+scene.add(walker.mesh)
 
 /**
  * Cube
@@ -38,10 +42,10 @@ scene.add(axesHelper)
 /**
  * Grid helper
  */
-const gridHelper = new THREE.GridHelper(6, 6)
-gridHelper.rotation.x = Math.PI * 0.5
-gridHelper.position.set(3, 3, -0.01)
-scene.add(gridHelper)
+// const gridHelper = new THREE.GridHelper(6, 6)
+// gridHelper.rotation.x = Math.PI * 0.5
+// gridHelper.position.set(3, 3, -0.01)
+// scene.add(gridHelper)
 
 /**
  * render sizes
@@ -56,7 +60,7 @@ const sizes = {
 const fov = 60
 const camera = new THREE.PerspectiveCamera(fov, sizes.width / sizes.height, 0.1)
 
-camera.position.set(3, 3, 6)
+camera.position.set(10, 10, 10)
 
 /**
  * renderer
@@ -76,7 +80,12 @@ document.body.appendChild(renderer.domElement)
  */
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
-controls.target.set(3, 3, 3)
+
+const clock = new THREE.Clock()
+const f = 1
+let steps = 0
+
+walker.step()
 
 /**
  * frame loop
@@ -85,6 +94,16 @@ function tic() {
 	controls.update()
 
 	renderer.render(scene, camera)
+
+	// const t = clock.getElapsedTime()
+	// if (steps < t / f) {
+	// 	steps++
+
+	// 	const pos = walker.position.clone()
+	// 	const pos2 = walker.step()
+
+	// 	createVector('', pos2.sub(pos), pos)
+	// }
 
 	requestAnimationFrame(tic)
 }
@@ -113,14 +132,10 @@ function onResize() {
  * @param {Vector3} origin
  * @returns
  */
-function createVector(
-	name,
-	v = new THREE.Vector3(),
-	origin = new THREE.Vector3()
-) {
-	const color = new THREE.Color(Math.random(), Math.random(), Math.random())
+function createVector(name, v = new Vector3(), origin = new Vector3()) {
+	const color = new Color(Math.random(), Math.random(), Math.random())
 
-	const h = new THREE.ArrowHelper(
+	const h = new ArrowHelper(
 		v.clone().normalize(),
 		origin.clone(),
 		v.length(),
@@ -151,9 +166,13 @@ loader.load(fontSrc, function (res) {
  * create Label for the ArrowHelper
  * @param {String} text
  * @param {Vector3} position
- * @param {THREE.Color} color
+ * @param {Color} color
  */
 function createText(text, position, color) {
+	if (!text) {
+		return
+	}
+
 	const geometry = new TextGeometry(text, {
 		font,
 		size: 0.3,
@@ -162,9 +181,9 @@ function createText(text, position, color) {
 
 	geometry.computeBoundingBox()
 
-	let mesh = new THREE.Mesh(
+	let mesh = new Mesh(
 		geometry,
-		new THREE.MeshBasicMaterial({
+		new MeshBasicMaterial({
 			color: color.getHex(),
 		})
 	)
@@ -180,29 +199,4 @@ function createText(text, position, color) {
 	scene.add(mesh)
 }
 
-function init() {
-	const positionA = new THREE.Vector3(3, 1, 0)
-	const s = new THREE.Vector3(1, 2, 0)
-
-	s.multiplyScalar(2)
-
-	console.log(s.length())
-
-	createVector('A', positionA)
-	createVector('s', s)
-
-	const positionB = positionA.clone().add(s)
-
-	createVector('B', positionB)
-
-	// const normalizedB = positionB.multiplyScalar(1 / positionB.length())
-	const normalizedB = positionB.normalize()
-	createVector('nB', normalizedB)
-
-	// s.negate()
-
-	// createVector('-s', s)
-
-	// const positionC = positionA.clone().add(s)
-	// createVector('C', positionC)
-}
+function init() {}
